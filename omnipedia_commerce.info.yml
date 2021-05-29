@@ -1,0 +1,15 @@
+name: Omnipedia - Commerce
+type: module
+description: Provides commerce-related functionality for Omnipedia.
+package: Omnipedia
+core_version_requirement: ^8 || ^9
+
+dependencies:
+  - commerce_cart_redirection:commerce_cart_redirection
+  - commerce:commerce_checkout
+  - commerce:commerce_order
+  - commerce:commerce_payment
+  - commerce:commerce_price
+  - commerce:commerce_product
+  - commerce:commerce_store
+  - commerce_paypal:commerce_paypal
