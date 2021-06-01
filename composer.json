@@ -13,7 +13,8 @@
   "require": {
     "drupal/commerce": "^2.24",
     "drupal/commerce_cart_redirection": "^3.0",
-    "drupal/commerce_paypal": "^1.0"
+    "drupal/commerce_paypal": "^1.0",
+    "drupal/permissions_by_term": "^2.25"
   },
   "require-dev": {
   }

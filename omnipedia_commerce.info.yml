@@ -13,3 +13,4 @@ dependencies:
   - commerce:commerce_product
   - commerce:commerce_store
   - commerce_paypal:commerce_paypal
+  - permissions_by_term:permissions_by_term
