@@ -16,3 +16,11 @@ services:
       - '@permissions_by_term.node_access'
     tags:
       - { name: 'event_subscriber' }
+
+  # Event subscriber to alter Commerce payment options, adding Stripe links.
+  omnipedia_commerce.base_form_commerce_checkout_flow_stripe_alter_event_subscriber:
+    class: Drupal\omnipedia_commerce\EventSubscriber\Form\CommerceCheckoutFlowStripeBaseFormAlterEventSubscriber
+    arguments:
+      - '@string_translation'
+    tags:
+      - { name: 'event_subscriber' }

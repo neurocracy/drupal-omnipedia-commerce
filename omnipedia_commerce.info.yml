@@ -14,4 +14,5 @@ dependencies:
   - commerce:commerce_store
   - commerce_paypal:commerce_paypal
   - commerce_stripe:commerce_stripe
+  - hook_event_dispatcher:core_event_dispatcher
   - permissions_by_term:permissions_by_term
