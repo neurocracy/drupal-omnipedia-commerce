@@ -17,6 +17,14 @@ services:
     tags:
       - { name: 'event_subscriber' }
 
+  # Event subscriber to remove the Commerce added to cart message.
+  omnipedia_commerce.kernel_commerce_cart_added_message_removal_event_subscriber:
+    class: Drupal\omnipedia_commerce\EventSubscriber\Kernel\CommerceCartAddedMessageRemovalEventSubscriber
+    arguments:
+      - '@commerce_cart.cart_subscriber'
+    tags:
+      - { name: 'event_subscriber' }
+
   # Event subscriber to alter Commerce payment options, adding Stripe links.
   omnipedia_commerce.base_form_commerce_checkout_flow_stripe_alter_event_subscriber:
     class: Drupal\omnipedia_commerce\EventSubscriber\Form\CommerceCheckoutFlowStripeBaseFormAlterEventSubscriber
