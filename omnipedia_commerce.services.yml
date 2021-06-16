@@ -25,6 +25,12 @@ services:
     tags:
       - { name: 'event_subscriber' }
 
+  # Event subscriber to alter Commerce checkout flow PayPal buttons location.
+  omnipedia_commerce.base_form_commerce_checkout_flow_paypal_alter_event_subscriber:
+    class: Drupal\omnipedia_commerce\EventSubscriber\Form\CommerceCheckoutFlowPayPalBaseFormAlterEventSubscriber
+    tags:
+      - { name: 'event_subscriber' }
+
   # Event subscriber to alter Commerce payment options, adding Stripe links.
   omnipedia_commerce.base_form_commerce_checkout_flow_stripe_alter_event_subscriber:
     class: Drupal\omnipedia_commerce\EventSubscriber\Form\CommerceCheckoutFlowStripeBaseFormAlterEventSubscriber
