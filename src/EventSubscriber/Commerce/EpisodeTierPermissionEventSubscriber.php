@@ -50,6 +50,9 @@ class EpisodeTierPermissionEventSubscriber implements EventSubscriberInterface {
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The Drupal configuration factory service.
    *
+   * @param \Psr\Log\LoggerInterface $loggerChannel
+   *   Our logger channel.
+   *
    * @param \Drupal\permissions_by_term\Service\AccessStorage $accessStorage
    *   The Permissions by Term module access storage service.
    *
@@ -157,7 +160,7 @@ class EpisodeTierPermissionEventSubscriber implements EventSubscriberInterface {
 
       foreach ($product->get('field_episode_tier') as $fieldItem) {
 
-        /** @var string|null The term ID (tid) for this single episide tier or null if not set. */
+        /** @var string|null The term ID (tid) for this single episode tier or null if not set. */
         $tid = $fieldItem->target_id;
 
         // Skip this term ID (tid) if we got null or if it's already in $tids.
