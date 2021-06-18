@@ -16,4 +16,5 @@ dependencies:
   - commerce_paypal:commerce_paypal
   - commerce_stripe:commerce_stripe
   - hook_event_dispatcher:core_event_dispatcher
+  - omnipedia_core:omnipedia_core
   - permissions_by_term:permissions_by_term
