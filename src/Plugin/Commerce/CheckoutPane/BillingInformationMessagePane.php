@@ -28,7 +28,7 @@ class BillingInformationMessagePane extends CheckoutPaneBase {
     $paneForm['omnipedia_billing_information_message'] = [
       '#type'   => 'html_tag',
       '#tag'    => 'p',
-      '#value'  => $this->t('We need your billing address to determine what taxes we\'re legally required to charge. It will not be used for any other purpose and will not be disclosed to any third-party other than the payment processor you choose.'),
+      '#value'  => $this->t('We\'ll need your billing address to determine what taxes we\'re legally required to charge. It will not be used for any other purpose and will not be disclosed to any third-party other than the payment processor you choose. The displayed price will include any applicable taxes.'),
     ];
 
     return $paneForm;
