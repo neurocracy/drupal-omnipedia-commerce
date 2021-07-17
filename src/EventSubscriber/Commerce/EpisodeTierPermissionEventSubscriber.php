@@ -4,10 +4,8 @@ namespace Drupal\omnipedia_commerce\EventSubscriber\Commerce;
 
 use Drupal\commerce_order\Event\OrderEvent;
 use Drupal\commerce_order\Event\OrderEvents;
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\RfcLogLevel;
-use Drupal\permissions_by_term\Service\AccessStorage;
-use Drupal\permissions_by_term\Service\NodeAccess;
+use Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -17,20 +15,6 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class EpisodeTierPermissionEventSubscriber implements EventSubscriberInterface {
 
   /**
-   * Whether node access records are disabled in the Permissions by Term module.
-   *
-   * @var bool
-   */
-  protected $disabledNodeAccessRecords;
-
-  /**
-   * The Permissions by Term module access storage service.
-   *
-   * @var \Drupal\permissions_by_term\Service\AccessStorage
-   */
-  protected $accessStorage;
-
-  /**
    * Our logger channel.
    *
    * @var \Psr\Log\LoggerInterface
@@ -38,39 +22,27 @@ class EpisodeTierPermissionEventSubscriber implements EventSubscriberInterface {
   protected $loggerChannel;
 
   /**
-   * The Permissions by Term module node access service.
+   * The Omnipedia user episode tiers service.
    *
-   * @var \Drupal\permissions_by_term\Service\NodeAccess
+   * @var \Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface
    */
-  protected $nodeAccess;
+  protected $userEpisodeTiers;
 
   /**
    * Event subscriber constructor; saves dependencies.
    *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
-   *   The Drupal configuration factory service.
-   *
    * @param \Psr\Log\LoggerInterface $loggerChannel
    *   Our logger channel.
    *
-   * @param \Drupal\permissions_by_term\Service\AccessStorage $accessStorage
-   *   The Permissions by Term module access storage service.
-   *
-   * @param \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
-   *   The Permissions by Term module node access service.
+   * @param \Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface $userEpisodeTiers
+   *   The Omnipedia user episode tiers service.
    */
   public function __construct(
-    ConfigFactoryInterface  $configFactory,
-    LoggerInterface         $loggerChannel,
-    AccessStorage           $accessStorage,
-    NodeAccess              $nodeAccess
+    LoggerInterface           $loggerChannel,
+    UserEpisodeTiersInterface $userEpisodeTiers
   ) {
-    $this->loggerChannel  = $loggerChannel;
-    $this->accessStorage  = $accessStorage;
-    $this->nodeAccess     = $nodeAccess;
-
-    $this->disabledNodeAccessRecords = $configFactory
-      ->get('permissions_by_term.settings')->get('disable_node_access_records');
+    $this->loggerChannel    = $loggerChannel;
+    $this->userEpisodeTiers = $userEpisodeTiers;
   }
 
   /**
@@ -120,20 +92,8 @@ class EpisodeTierPermissionEventSubscriber implements EventSubscriberInterface {
       );
 
       return;
+
     }
-
-    /** @var int The user ID (uid) that placed this order. */
-    $uid = $order->getCustomerId();
-
-    /** @var string The user's preferred language code. */
-    $langCode = $user->getPreferredLangcode();
-
-    /** @var string[] Zero or more permissions that the user has before purchase. Note that values are single strings containing term IDs, user IDs, and language codes all concatenated together. */
-    $prePurchasePermissions = $this->accessStorage
-      ->getAllTermPermissionsByUserId($uid);
-
-    /** @var int[] Term IDs (tids) to assign the user as permissions. */
-    $tids = [];
 
     /** @var \Drupal\commerce_order\Entity\OrderItemInterface[] The items for this order. */
     $orderItems = $order->getItems();
@@ -152,49 +112,13 @@ class EpisodeTierPermissionEventSubscriber implements EventSubscriberInterface {
       /** @var \Drupal\commerce_product\Entity\ProductInterface|null The purchased product or null. */
       $product = $productVariation->getProduct();
 
-      // Skip to the next order item if we didn't get a product entity or if we
-      // did get a product entity but it doesn't have the episode tier field.
-      if (!\is_object($product) || !$product->hasField('field_episode_tier')) {
+      // Skip to the next order item if we didn't get a product entity.
+      if (!\is_object($product)) {
         continue;
       }
 
-      foreach ($product->get('field_episode_tier') as $fieldItem) {
+      $this->userEpisodeTiers->grantUserProductEpisodeTiers($user, $product);
 
-        /** @var string|null The term ID (tid) for this single episode tier or null if not set. */
-        $tid = $fieldItem->target_id;
-
-        // Skip this term ID (tid) if we got null or if it's already in $tids.
-        if (empty($tid) || \in_array((int) $tid, $tids)) {
-          continue;
-        }
-
-        $tids[] = (int) $tid;
-
-      }
-
-    }
-
-    // Add all $tids to the user as term permissions.
-    foreach ($tids as $tid) {
-      $this->accessStorage->addTermPermissionsByUserIds(
-        [$uid], $tid, $langCode
-      );
-    }
-
-    /** @var string[] Zero or more permissions that the user has after purchase. Note that values are single strings containing term IDs, user IDs, and language codes all concatenated together. */
-    $postPurchasePermissions = $this->accessStorage
-      ->getAllTermPermissionsByUserId($uid);
-
-    // Rebuild node permissions if needed.
-    if (
-      !$this->disabledNodeAccessRecords &&
-      // Note that the order of the parameters to \array_diff() matters, as the
-      // first parameter is what the other arrays are checked against. Since we
-      // only expect a product to add permissions and not remove any, we only
-      // check against the post-purchase permissions.
-      !empty(\array_diff($postPurchasePermissions, $prePurchasePermissions))
-    ) {
-      $this->nodeAccess->rebuildAccess($uid);
     }
 
   }
