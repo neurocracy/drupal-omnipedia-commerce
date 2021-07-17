@@ -1,0 +1,7 @@
+action.configuration.omnipedia_commerce_user_grant_product_episode_tiers:
+  type: mapping
+  label: 'Configuration for "Grant product episode tiers" action'
+  mapping:
+    product_id:
+      type: string
+      label: 'Product ID'
