@@ -32,6 +32,16 @@ services:
     tags:
       - { name: 'event_subscriber' }
 
+  # Event subscriber to alter the Commerce add to cart form.
+  omnipedia_commerce.form_commerce_add_to_cart_alter_event_subscriber:
+    class: Drupal\omnipedia_commerce\EventSubscriber\Form\CommerceAddToCartFormAlterEventSubscriber
+    arguments:
+      - '@commerce_cart.cart_provider'
+      - '@config.factory'
+    tags:
+      - { name: 'event_subscriber' }
+
+
   # Event subscriber to alter Commerce checkout flow PayPal buttons location.
   omnipedia_commerce.base_form_commerce_checkout_flow_paypal_alter_event_subscriber:
     class: Drupal\omnipedia_commerce\EventSubscriber\Form\CommerceCheckoutFlowPayPalBaseFormAlterEventSubscriber
