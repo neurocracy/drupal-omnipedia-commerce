@@ -1,0 +1,15 @@
+omnipedia_commerce.configuration:
+  path: '/admin/commerce/config/omnipedia'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Omnipedia'
+  requirements:
+    _permission: 'access commerce administration pages'
+
+omnipedia_commerce.settings:
+  path: '/admin/commerce/config/omnipedia/settings'
+  defaults:
+    _form: '\Drupal\omnipedia_commerce\Form\OmnipediaCommerceSettingsForm'
+    _title: 'Omnipedia commerce settings'
+  requirements:
+    _permission: 'access commerce administration pages'

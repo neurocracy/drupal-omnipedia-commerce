@@ -4,6 +4,8 @@ description: Provides commerce-related functionality for Omnipedia.
 package: Omnipedia
 core_version_requirement: ^8 || ^9
 
+configure: omnipedia_commerce.configuration
+
 dependencies:
   - commerce_cart_redirection:commerce_cart_redirection
   - commerce:commerce_cart

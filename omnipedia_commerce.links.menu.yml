@@ -1,0 +1,11 @@
+omnipedia_commerce.configuration:
+  title: 'Omnipedia'
+  route_name: 'omnipedia_commerce.configuration'
+  parent: 'commerce.configuration'
+  weight: 5
+
+omnipedia_commerce.settings:
+  title: 'Omnipedia settings'
+  route_name: 'omnipedia_commerce.settings'
+  parent: 'omnipedia_commerce.configuration'
+  description: 'Configure Omnipedia commerce settings.'
