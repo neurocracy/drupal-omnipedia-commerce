@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   id       = "omnipedia_commerce_user_grant_product_episode_tiers",
  *   label    = @Translation("Grant product episode tiers"),
  *   type     = "user",
- *   category = @Translation("Omnipedia")
+ *   category = @Translation("Omnipedia"),
  * )
  */
 class UserGrantProductEpisodeTiers extends ConfigurableActionBase implements ContainerFactoryPluginInterface {
