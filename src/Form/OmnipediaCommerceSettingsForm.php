@@ -3,9 +3,9 @@
 namespace Drupal\omnipedia_commerce\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\omnipedia_commerce\Service\ContentAccessProductInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -14,16 +14,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class OmnipediaCommerceSettingsForm extends ConfigFormBase {
 
   /**
-   * The configuration name this form is for.
-   */
-  protected const CONFIG_NAME = 'omnipedia_commerce.settings';
-
-  /**
-   * The Commerce product entity storage.
+   * The Omnipedia content access product service.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
+   * @var \Drupal\omnipedia_commerce\Service\ContentAccessProductInterface
    */
-  protected $productStorage;
+  protected $contentAccessProduct;
 
   /**
    * Constructs this form object; saves dependencies.
@@ -31,16 +26,16 @@ class OmnipediaCommerceSettingsForm extends ConfigFormBase {
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The factory for configuration objects.
    *
-   * @param \Drupal\Core\Entity\EntityStorageInterface $productStorage
-   *   The Commerce product entity storage.
+   * @param \Drupal\omnipedia_commerce\Service\ContentAccessProductInterface $contentAccessProduct
+   *   The Omnipedia content access product service.
    */
   public function __construct(
-    ConfigFactoryInterface  $configFactory,
-    EntityStorageInterface  $productStorage
+    ConfigFactoryInterface        $configFactory,
+    ContentAccessProductInterface $contentAccessProduct
   ) {
     parent::__construct($configFactory);
 
-    $this->productStorage = $productStorage;
+    $this->contentAccessProduct = $contentAccessProduct;
   }
 
   /**
@@ -49,7 +44,7 @@ class OmnipediaCommerceSettingsForm extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
-      $container->get('entity_type.manager')->getStorage('commerce_product')
+      $container->get('omnipedia_commerce.content_access_product')
     );
   }
 
@@ -62,20 +57,20 @@ class OmnipediaCommerceSettingsForm extends ConfigFormBase {
 
   /**
    * {@inheritdoc}
+   *
+   * Since we delegate setting the configuration to the content access product
+   * service, this form does not directly edit any configuration. However, this
+   * method is defined as abstract in ConfigFormBaseTrait so we have to
+   * implement it.
    */
   protected function getEditableConfigNames() {
-    return [
-      self::CONFIG_NAME,
-    ];
+    return [];
   }
 
   /**
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-
-    /** @var \Drupal\Core\Config\Config */
-    $config = $this->config(self::CONFIG_NAME);
 
     $form['base_content_access_product'] = [
       '#type'               => 'entity_autocomplete',
@@ -90,18 +85,11 @@ class OmnipediaCommerceSettingsForm extends ConfigFormBase {
       ],
     ];
 
-    /** @var string|null */
-    $productId = $config->get('base_content_access_product_id');
+    /** @var \Drupal\commerce_product\Entity\ProductInterface|null A product entity or null. */
+    $product = $this->contentAccessProduct->getBaseProduct();
 
-    if (!empty($productId)) {
-
-      /** @var \Drupal\commerce_product\Entity\ProductInterface|null A product entity or null. */
-      $product = $this->productStorage->load($productId);
-
-      if (\is_object($product)) {
-        $form['base_content_access_product']['#default_value'] = $product;
-      }
-
+    if (\is_object($product)) {
+      $form['base_content_access_product']['#default_value'] = $product;
     }
 
     return parent::buildForm($form, $form_state);
@@ -113,10 +101,9 @@ class OmnipediaCommerceSettingsForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
-    $this->config(self::CONFIG_NAME)->set(
-      'base_content_access_product_id',
+    $this->contentAccessProduct->setBaseProductId(
       $form_state->getValue('base_content_access_product')
-    )->save();
+    );
 
     parent::submitForm($form, $form_state);
 

@@ -6,6 +6,13 @@ services:
     factory: logger.factory:get
     arguments: ['omnipedia_commerce']
 
+  # The Omnipedia content access product service.
+  omnipedia_commerce.content_access_product:
+    class: Drupal\omnipedia_commerce\Service\ContentAccessProduct
+    arguments:
+      - '@config.factory'
+      - '@entity_type.manager'
+
   # The Omnipedia user episode tiers service.
   omnipedia_commerce.user_episode_tiers:
     class: Drupal\omnipedia_commerce\Service\UserEpisodeTiers
