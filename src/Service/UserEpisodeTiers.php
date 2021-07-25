@@ -3,25 +3,16 @@
 namespace Drupal\omnipedia_commerce\Service;
 
 use Drupal\commerce_product\Entity\ProductInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\omnipedia_commerce\Service\PermissionsByTermInterface;
 use Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface;
-use Drupal\permissions_by_term\Service\AccessStorage;
-use Drupal\permissions_by_term\Service\NodeAccess;
 use Psr\Log\LoggerInterface;
 
 /**
  * The Omnipedia user episode tiers service.
  */
 class UserEpisodeTiers implements UserEpisodeTiersInterface {
-
-  /**
-   * Whether node access records are disabled in the Permissions by Term module.
-   *
-   * @var bool
-   */
-  protected $disabledNodeAccessRecords;
 
   /**
    * Our logger channel.
@@ -31,46 +22,27 @@ class UserEpisodeTiers implements UserEpisodeTiersInterface {
   protected $loggerChannel;
 
   /**
-   * The Permissions by Term module access storage service.
+   * The Omnipedia Permissions by Term helper service.
    *
-   * @var \Drupal\permissions_by_term\Service\AccessStorage
+   * @var \Drupal\omnipedia_commerce\Service\PermissionsByTermInterface
    */
-  protected $accessStorage;
-
-  /**
-   * The Permissions by Term module node access service.
-   *
-   * @var \Drupal\permissions_by_term\Service\NodeAccess
-   */
-  protected $nodeAccess;
+  protected $permissionsByTerm;
 
   /**
    * Service constructor; saves dependencies.
    *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
-   *   The Drupal configuration factory service.
-   *
    * @param \Psr\Log\LoggerInterface $loggerChannel
    *   Our logger channel.
    *
-   * @param \Drupal\permissions_by_term\Service\AccessStorage $accessStorage
-   *   The Permissions by Term module access storage service.
-   *
-   * @param \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
-   *   The Permissions by Term module node access service.
+   * @param \Drupal\omnipedia_commerce\Service\PermissionsByTermInterface $permissionsByTerm
+   *   The Omnipedia Permissions by Term helper service.
    */
   public function __construct(
-    ConfigFactoryInterface  $configFactory,
-    LoggerInterface         $loggerChannel,
-    AccessStorage           $accessStorage,
-    NodeAccess              $nodeAccess
+    LoggerInterface             $loggerChannel,
+    PermissionsByTermInterface  $permissionsByTerm
   ) {
-    $this->loggerChannel  = $loggerChannel;
-    $this->accessStorage  = $accessStorage;
-    $this->nodeAccess     = $nodeAccess;
-
-    $this->disabledNodeAccessRecords = $configFactory
-      ->get('permissions_by_term.settings')->get('disable_node_access_records');
+    $this->loggerChannel      = $loggerChannel;
+    $this->permissionsByTerm  = $permissionsByTerm;
   }
 
   /**
@@ -104,10 +76,6 @@ class UserEpisodeTiers implements UserEpisodeTiersInterface {
 
     }
 
-    /** @var string[] Zero or more permissions that the user has before applying the product's episode tiers. Note that values are single strings containing term IDs, user IDs, and language codes all concatenated together. */
-    $previousPermissions = $this->accessStorage
-      ->getAllTermPermissionsByUserId($user->id());
-
     /** @var int[] Term IDs (tids) to assign the user as permissions. */
     $tids = [];
 
@@ -125,28 +93,7 @@ class UserEpisodeTiers implements UserEpisodeTiersInterface {
 
     }
 
-    // Add all $tids to the user as term permissions.
-    foreach ($tids as $tid) {
-      $this->accessStorage->addTermPermissionsByUserIds(
-        [$user->id()], $tid, $user->getPreferredLangcode()
-      );
-    }
-
-    /** @var string[] Zero or more permissions that the user has after purchase. Note that values are single strings containing term IDs, user IDs, and language codes all concatenated together. */
-    $updatedPermissions = $this->accessStorage
-      ->getAllTermPermissionsByUserId($user->id());
-
-    // Rebuild node permissions if needed.
-    if (
-      !$this->disabledNodeAccessRecords &&
-      // Note that the order of the parameters to \array_diff() matters, as the
-      // first parameter is what the other arrays are checked against. Since we
-      // only expect a product to add permissions and not remove any, we only
-      // check against the post-purchase permissions.
-      !empty(\array_diff($updatedPermissions, $previousPermissions))
-    ) {
-      $this->nodeAccess->rebuildAccess($user->id());
-    }
+    $this->permissionsByTerm->addUserTerms($user->id(), $tids);
 
   }
 

@@ -26,10 +26,8 @@ services:
   omnipedia_commerce.user_episode_tiers:
     class: Drupal\omnipedia_commerce\Service\UserEpisodeTiers
     arguments:
-      - '@config.factory'
       - '@logger.channel.omnipedia_commerce'
-      - '@permissions_by_term.access_storage'
-      - '@permissions_by_term.node_access'
+      - '@omnipedia_commerce.permissions_by_term'
 
   # Event subscriber to grant a user episode tiers on Commerce order paid.
   omnipedia_commerce.commerce_episode_tier_permission_event_subscriber:
