@@ -59,10 +59,6 @@ class EpisodeTierPermissionEventSubscriber implements EventSubscriberInterface {
    *
    * @param \Drupal\commerce_order\Event\OrderEvent $event
    *   The event object.
-   *
-   * @see \permissions_by_term_user_form_submit()
-   *   Much of the code relating to Permissions by Term is adapted from this and
-   *   altered to use dependency injection.
    */
   public function onOrderPaid(OrderEvent $event) {
 

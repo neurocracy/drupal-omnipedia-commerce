@@ -13,6 +13,10 @@ use Drupal\permissions_by_term\Service\NodeAccess;
 
 /**
  * The Omnipedia Permissions by Term helper service.
+ *
+ * @see \permissions_by_term_user_form_submit()
+ *   Much of the code relating to Permissions by Term is adapted from this and
+ *   altered to use dependency injection.
  */
 class PermissionsByTerm implements PermissionsByTermInterface {
 
