@@ -13,6 +13,15 @@ services:
       - '@config.factory'
       - '@entity_type.manager'
 
+  # The Omnipedia Permissions by Term helper service.
+  omnipedia_commerce.permissions_by_term:
+    class: Drupal\omnipedia_commerce\Service\PermissionsByTerm
+    arguments:
+      - '@config.factory'
+      - '@entity_type.manager'
+      - '@permissions_by_term.access_storage'
+      - '@permissions_by_term.node_access'
+
   # The Omnipedia user episode tiers service.
   omnipedia_commerce.user_episode_tiers:
     class: Drupal\omnipedia_commerce\Service\UserEpisodeTiers
