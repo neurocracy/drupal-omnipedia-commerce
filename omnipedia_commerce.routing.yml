@@ -13,3 +13,11 @@ omnipedia_commerce.settings:
     _title: 'Omnipedia commerce settings'
   requirements:
     _permission: 'access commerce administration pages'
+
+omnipedia_commerce.multiple_grant_order_episode_tiers_confirm:
+  path: '/admin/commerce/orders/grant-episode-tiers'
+  defaults:
+    _form: '\Drupal\omnipedia_commerce\Form\GrantOrderProductEpisodeTiersConfirmForm'
+    _title: 'Grant episode tiers'
+  requirements:
+    _permission: 'administer commerce_order'

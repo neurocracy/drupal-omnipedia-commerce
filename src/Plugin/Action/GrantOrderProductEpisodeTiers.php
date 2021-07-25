@@ -4,10 +4,9 @@ namespace Drupal\omnipedia_commerce\Plugin\Action;
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Action\ActionBase;
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface;
+use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -18,45 +17,46 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   label    = @Translation("Grant product episode tiers"),
  *   type     = "commerce_order",
  *   category = @Translation("Omnipedia"),
+ *   confirm_form_route_name = "omnipedia_commerce.multiple_grant_order_episode_tiers_confirm",
  * )
  */
 class GrantOrderProductEpisodeTiers extends ActionBase implements ContainerFactoryPluginInterface {
 
   /**
-   * The Commerce product entity storage.
+   * The current user.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
+   * @var \Drupal\Core\Session\AccountInterface
    */
-  protected $productStorage;
+  protected $currentUser;
 
   /**
-   * The Omnipedia user episode tiers service.
+   * The Drupal tempstore factory.
    *
-   * @var \Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface
+   * @var \Drupal\Core\TempStore\PrivateTempStoreFactory
    */
-  protected $userEpisodeTiers;
+  protected $tempStoreFactory;
 
   /**
    * {@inheritdoc}
    *
-   * @param \Drupal\Core\Entity\EntityStorageInterface $productStorage
-   *   The Commerce product entity storage.
+   * @param \Drupal\Core\Session\AccountInterface $currentUser
+   *   The current user.
    *
-   * @param \Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface $userEpisodeTiers
-   *   The Omnipedia user episode tiers service.
+   * @param \Drupal\Core\TempStore\PrivateTempStoreFactory $tempStoreFactory
+   *   The Drupal tempstore factory.
    */
   public function __construct(
     array $configuration, $pluginId, $pluginDefinition,
-    EntityStorageInterface    $productStorage,
-    UserEpisodeTiersInterface $userEpisodeTiers
+    AccountInterface        $currentUser,
+    PrivateTempStoreFactory $tempStoreFactory
   ) {
 
     parent::__construct(
       $configuration, $pluginId, $pluginDefinition
     );
 
-    $this->productStorage   = $productStorage;
-    $this->userEpisodeTiers = $userEpisodeTiers;
+    $this->currentUser      = $currentUser;
+    $this->tempStoreFactory = $tempStoreFactory;
 
   }
 
@@ -71,8 +71,8 @@ class GrantOrderProductEpisodeTiers extends ActionBase implements ContainerFacto
       $configuration,
       $pluginId,
       $pluginDefinition,
-      $container->get('entity_type.manager')->getStorage('commerce_product'),
-      $container->get('omnipedia_commerce.user_episode_tiers')
+      $container->get('current_user'),
+      $container->get('tempstore.private')
     );
   }
 
@@ -98,42 +98,17 @@ class GrantOrderProductEpisodeTiers extends ActionBase implements ContainerFacto
   /**
    * {@inheritdoc}
    */
+  public function executeMultiple(array $orders) {
+    $this->tempStoreFactory->get('grant_order_episode_tiers_confirm')->set(
+      $this->currentUser->id(), $orders
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function execute($order = null) {
-
-    if (!\is_object($order)) {
-      return;
-    }
-
-    if (!$order->hasItems()) {
-      return;
-    }
-
-    /** @var \Drupal\commerce_order\Entity\OrderItemInterface $orderItem */
-    foreach ($order->getItems() as $orderItem) {
-
-      /** @var \Drupal\commerce\PurchasableEntityInterface|null The product variation entity or null. */
-      $productVariation = $orderItem->getPurchasedEntity();
-
-      // Skip to the next order item if the product variation is not an object,
-      // i.e. null.
-      if (!\is_object($productVariation)) {
-        continue;
-      }
-
-      /** @var \Drupal\commerce_product\Entity\ProductInterface|null The purchased product or null. */
-      $product = $productVariation->getProduct();
-
-      // Skip to the next order item if we didn't get a product entity.
-      if (!\is_object($product)) {
-        continue;
-      }
-
-      $this->userEpisodeTiers->grantUserProductEpisodeTiers(
-        $order->getCustomer(), $product
-      );
-
-    }
-
+    $this->executeMultiple([$order]);
   }
 
 }
