@@ -7,6 +7,7 @@ use Drupal\Core\Action\ActionBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
+use Drupal\omnipedia_commerce\Service\PermissionsByTermInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -30,6 +31,13 @@ class GrantOrderProductEpisodeTiers extends ActionBase implements ContainerFacto
   protected $currentUser;
 
   /**
+   * The Omnipedia Permissions by Term helper service.
+   *
+   * @var \Drupal\omnipedia_commerce\Service\PermissionsByTermInterface
+   */
+  protected $permissionsByTerm;
+
+  /**
    * The Drupal tempstore factory.
    *
    * @var \Drupal\Core\TempStore\PrivateTempStoreFactory
@@ -42,21 +50,26 @@ class GrantOrderProductEpisodeTiers extends ActionBase implements ContainerFacto
    * @param \Drupal\Core\Session\AccountInterface $currentUser
    *   The current user.
    *
+   * @param \Drupal\omnipedia_commerce\Service\PermissionsByTermInterface $permissionsByTerm
+   *   The Omnipedia Permissions by Term helper service.
+   *
    * @param \Drupal\Core\TempStore\PrivateTempStoreFactory $tempStoreFactory
    *   The Drupal tempstore factory.
    */
   public function __construct(
     array $configuration, $pluginId, $pluginDefinition,
-    AccountInterface        $currentUser,
-    PrivateTempStoreFactory $tempStoreFactory
+    AccountInterface            $currentUser,
+    PermissionsByTermInterface  $permissionsByTerm,
+    PrivateTempStoreFactory     $tempStoreFactory
   ) {
 
     parent::__construct(
       $configuration, $pluginId, $pluginDefinition
     );
 
-    $this->currentUser      = $currentUser;
-    $this->tempStoreFactory = $tempStoreFactory;
+    $this->currentUser        = $currentUser;
+    $this->permissionsByTerm  = $permissionsByTerm;
+    $this->tempStoreFactory   = $tempStoreFactory;
 
   }
 
@@ -72,6 +85,7 @@ class GrantOrderProductEpisodeTiers extends ActionBase implements ContainerFacto
       $pluginId,
       $pluginDefinition,
       $container->get('current_user'),
+      $container->get('omnipedia_commerce.permissions_by_term'),
       $container->get('tempstore.private')
     );
   }
@@ -83,12 +97,10 @@ class GrantOrderProductEpisodeTiers extends ActionBase implements ContainerFacto
     $order, AccountInterface $account = null, $returnAsObject = false
   ) {
 
-    $access = $order->getCustomer()->access('update', $account, true)->andIf(
-      // Permissions by Term does not have a specific permission for updating
-      // a user's permission terms, so this is the closest thing.
-      AccessResult::allowedIfHasPermission(
-        $account, 'show term permissions on user edit page'
-      )
+    /** @var \Drupal\Core\Access\AccessResultInterface */
+    $access = $this->permissionsByTerm->userPermissionsUpdateAccessResult(
+      $account,
+      $order->getCustomer()
     );
 
     return $returnAsObject ? $access : $access->isAllowed();

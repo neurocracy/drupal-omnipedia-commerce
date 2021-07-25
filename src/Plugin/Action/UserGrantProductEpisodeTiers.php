@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\omnipedia_commerce\Service\PermissionsByTermInterface;
 use Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -22,6 +23,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * )
  */
 class UserGrantProductEpisodeTiers extends ConfigurableActionBase implements ContainerFactoryPluginInterface {
+
+  /**
+   * The Omnipedia Permissions by Term helper service.
+   *
+   * @var \Drupal\omnipedia_commerce\Service\PermissionsByTermInterface
+   */
+  protected $permissionsByTerm;
 
   /**
    * The Commerce product entity storage.
@@ -40,6 +48,9 @@ class UserGrantProductEpisodeTiers extends ConfigurableActionBase implements Con
   /**
    * {@inheritdoc}
    *
+   * @param \Drupal\omnipedia_commerce\Service\PermissionsByTermInterface $permissionsByTerm
+   *   The Omnipedia Permissions by Term helper service.
+   *
    * @param \Drupal\Core\Entity\EntityStorageInterface $productStorage
    *   The Commerce product entity storage.
    *
@@ -48,16 +59,18 @@ class UserGrantProductEpisodeTiers extends ConfigurableActionBase implements Con
    */
   public function __construct(
     array $configuration, $pluginId, $pluginDefinition,
-    EntityStorageInterface    $productStorage,
-    UserEpisodeTiersInterface $userEpisodeTiers
+    PermissionsByTermInterface  $permissionsByTerm,
+    EntityStorageInterface      $productStorage,
+    UserEpisodeTiersInterface   $userEpisodeTiers
   ) {
 
     parent::__construct(
       $configuration, $pluginId, $pluginDefinition
     );
 
-    $this->productStorage   = $productStorage;
-    $this->userEpisodeTiers = $userEpisodeTiers;
+    $this->permissionsByTerm  = $permissionsByTerm;
+    $this->productStorage     = $productStorage;
+    $this->userEpisodeTiers   = $userEpisodeTiers;
 
   }
 
@@ -72,6 +85,7 @@ class UserGrantProductEpisodeTiers extends ConfigurableActionBase implements Con
       $configuration,
       $pluginId,
       $pluginDefinition,
+      $container->get('omnipedia_commerce.permissions_by_term'),
       $container->get('entity_type.manager')->getStorage('commerce_product'),
       $container->get('omnipedia_commerce.user_episode_tiers')
     );
@@ -137,13 +151,10 @@ class UserGrantProductEpisodeTiers extends ConfigurableActionBase implements Con
     $user, AccountInterface $account = null, $returnAsObject = false
   ) {
 
-    /** @var \Drupal\user\UserInterface $user */
-    $access = $user->access('update', $account, true)->andIf(
-      // Permissions by Term does not have a specific permission for updating
-      // a user's permission terms, so this is the closest thing.
-      AccessResult::allowedIfHasPermission(
-        $account, 'show term permissions on user edit page'
-      )
+    /** @var \Drupal\Core\Access\AccessResultInterface */
+    $access = $this->permissionsByTerm->userPermissionsUpdateAccessResult(
+      $account,
+      $user
     );
 
     return $returnAsObject ? $access : $access->isAllowed();
