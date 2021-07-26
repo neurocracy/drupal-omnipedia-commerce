@@ -10,6 +10,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Url;
+use Drupal\omnipedia_commerce\Service\CommerceOrderInterface;
 use Drupal\omnipedia_core\Service\WikiNodeMainPageInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -53,6 +54,13 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
   protected const WIKI_NODE_FIELD_NAME = 'field_redirect_wiki_page';
 
   /**
+   * The Omnipedia Commerce order helper service.
+   *
+   * @var \Drupal\omnipedia_commerce\Service\CommerceOrderInterface
+   */
+  protected $commerceOrder;
+
+  /**
    * Our logger channel.
    *
    * @var \Psr\Log\LoggerInterface
@@ -69,6 +77,9 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
   /**
    * {@inheritdoc}
    *
+   * @param \Drupal\omnipedia_commerce\Service\CommerceOrderInterface $commerceOrder
+   *   The Omnipedia Commerce order helper service.
+   *
    * @param \Psr\Log\LoggerInterface $loggerChannel
    *   Our logger channel.
    *
@@ -82,6 +93,7 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
     array $configuration, $pluginId, $pluginDefinition,
     CheckoutFlowInterface       $checkoutFlow,
     EntityTypeManagerInterface  $entityTypeManager,
+    CommerceOrderInterface      $commerceOrder,
     LoggerInterface             $loggerChannel,
     MessengerInterface          $messenger,
     WikiNodeMainPageInterface   $wikiNodeMainPage
@@ -92,6 +104,7 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
       $checkoutFlow, $entityTypeManager
     );
 
+    $this->commerceOrder    = $commerceOrder;
     $this->loggerChannel    = $loggerChannel;
     $this->messenger        = $messenger;
     $this->wikiNodeMainPage = $wikiNodeMainPage;
@@ -112,6 +125,7 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
       $pluginDefinition,
       $checkoutFlow,
       $container->get('entity_type.manager'),
+      $container->get('omnipedia_commerce.commerce_order'),
       $container->get('logger.channel.omnipedia_commerce'),
       $container->get('messenger'),
       $container->get('omnipedia.wiki_node_main_page')
@@ -134,8 +148,11 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
     array $paneForm, FormStateInterface $formState, array &$completeForm
   ) {
 
+    /** @var \Drupal\commerce_product\Entity\ProductInterface[] */
+    $products = $this->commerceOrder->getProductsFromOrder($this->order);
+
     // Bail if the order has no items and log an error.
-    if (!$this->order->hasItems()) {
+    if (count($products) === 0) {
 
       $this->loggerChannel->log(
         RfcLogLevel::ERROR,
@@ -156,24 +173,10 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
     /** @var string|null The message to display to the user after they've been redirected. */
     $message = null;
 
-    foreach ($orderItems as $orderItem) {
+    foreach ($products as $product) {
 
-      /** @var \Drupal\commerce\PurchasableEntityInterface|null The product variation entity or null. */
-      $productVariation = $orderItem->getPurchasedEntity();
-
-      // Skip to the next order item if the product variation is not an object,
-      // i.e. null.
-      if (!\is_object($productVariation)) {
-        continue;
-      }
-
-      /** @var \Drupal\commerce_product\Entity\ProductInterface|null The purchased product or null. */
-      $product = $productVariation->getProduct();
-
-      // Skip to the next order item if we didn't get a product entity or if we
-      // did get a product entity but it doesn't have the redirect fields.
+      // Skip to the next product if this one doesn't have the redirect fields.
       if (
-        !\is_object($product) ||
         !$product->hasField(self::WIKI_NODE_FIELD_NAME) ||
         !$product->hasField(self::MESSAGE_FIELD_NAME)
       ) {

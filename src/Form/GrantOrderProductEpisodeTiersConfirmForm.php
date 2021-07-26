@@ -10,6 +10,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\Core\Url;
+use Drupal\omnipedia_commerce\Service\CommerceOrderInterface;
 use Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -27,6 +28,13 @@ class GrantOrderProductEpisodeTiersConfirmForm extends ConfirmFormBase {
    * Our temp store name.
    */
   protected const TEMP_STORE_NAME = 'grant_order_episode_tiers_confirm';
+
+  /**
+   * The Omnipedia Commerce order helper service.
+   *
+   * @var \Drupal\omnipedia_commerce\Service\CommerceOrderInterface
+   */
+  protected $commerceOrder;
 
   /**
    * The current user.
@@ -50,13 +58,6 @@ class GrantOrderProductEpisodeTiersConfirmForm extends ConfirmFormBase {
   protected $orderStorage;
 
   /**
-   * The Commerce product entity storage.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected $productStorage;
-
-  /**
    * The Drupal tempstore factory.
    *
    * @var \Drupal\Core\TempStore\PrivateTempStoreFactory
@@ -73,6 +74,9 @@ class GrantOrderProductEpisodeTiersConfirmForm extends ConfirmFormBase {
   /**
    * Constructs this form object; saves dependencies.
    *
+   * @param \Drupal\omnipedia_commerce\Service\CommerceOrderInterface $commerceOrder
+   *   The Omnipedia Commerce order helper service.
+   *
    * @param \Drupal\Core\Session\AccountInterface $currentUser
    *   The current user.
    *
@@ -81,9 +85,6 @@ class GrantOrderProductEpisodeTiersConfirmForm extends ConfirmFormBase {
    *
    * @param \Drupal\Core\Entity\EntityStorageInterface $orderStorage
    *   The Commerce order entity storage.
-   *
-   * @param \Drupal\Core\Entity\EntityStorageInterface $productStorage
-   *   The Commerce product entity storage.
    *
    * @param \Drupal\Core\StringTranslation\TranslationInterface $stringTranslation
    *   The Drupal string translation service.
@@ -95,18 +96,18 @@ class GrantOrderProductEpisodeTiersConfirmForm extends ConfirmFormBase {
    *   The Omnipedia user episode tiers service.
    */
   public function __construct(
+    CommerceOrderInterface    $commerceOrder,
     AccountInterface          $currentUser,
     MessengerInterface        $messenger,
     EntityStorageInterface    $orderStorage,
-    EntityStorageInterface    $productStorage,
     TranslationInterface      $stringTranslation,
     PrivateTempStoreFactory   $tempStoreFactory,
     UserEpisodeTiersInterface $userEpisodeTiers
   ) {
+    $this->commerceOrder      = $commerceOrder;
     $this->currentUser        = $currentUser;
     $this->messenger          = $messenger;
     $this->orderStorage       = $orderStorage;
-    $this->productStorage     = $productStorage;
     $this->stringTranslation  = $stringTranslation;
     $this->tempStoreFactory   = $tempStoreFactory;
     $this->userEpisodeTiers   = $userEpisodeTiers;
@@ -117,10 +118,10 @@ class GrantOrderProductEpisodeTiersConfirmForm extends ConfirmFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
+      $container->get('omnipedia_commerce.commerce_order'),
       $container->get('current_user'),
       $container->get('messenger'),
       $container->get('entity_type.manager')->getStorage('commerce_order'),
-      $container->get('entity_type.manager')->getStorage('commerce_product'),
       $container->get('string_translation'),
       $container->get('tempstore.private'),
       $container->get('omnipedia_commerce.user_episode_tiers')
@@ -194,25 +195,8 @@ class GrantOrderProductEpisodeTiersConfirmForm extends ConfirmFormBase {
     /* @var \Drupal\commerce_order\Entity\OrderInterface $order */
     foreach ($orders as $order) {
 
-      /** @var \Drupal\commerce_order\Entity\OrderItemInterface $orderItem */
-      foreach ($order->getItems() as $orderItem) {
-
-        /** @var \Drupal\commerce\PurchasableEntityInterface|null The product variation entity or null. */
-        $productVariation = $orderItem->getPurchasedEntity();
-
-        // Skip to the next order item if the product variation is not an object,
-        // i.e. null.
-        if (!\is_object($productVariation)) {
-          continue;
-        }
-
-        /** @var \Drupal\commerce_product\Entity\ProductInterface|null The purchased product or null. */
-        $product = $productVariation->getProduct();
-
-        // Skip to the next order item if we didn't get a product entity.
-        if (!\is_object($product)) {
-          continue;
-        }
+      /** @var \Drupal\commerce_product\Entity\ProductInterface $product */
+      foreach ($this->commerceOrder->getProductsFromOrder($order) as $product) {
 
         $form['orders'][$order->id()] = [
           '#type'   => 'hidden',
@@ -258,25 +242,10 @@ class GrantOrderProductEpisodeTiersConfirmForm extends ConfirmFormBase {
         /* @var \Drupal\commerce_order\Entity\OrderInterface */
         $order = $this->orderStorage->load($orderId);
 
-        /** @var \Drupal\commerce_order\Entity\OrderItemInterface $orderItem */
-        foreach ($order->getItems() as $orderItem) {
-
-          /** @var \Drupal\commerce\PurchasableEntityInterface|null The product variation entity or null. */
-          $productVariation = $orderItem->getPurchasedEntity();
-
-          // Skip to the next order item if the product variation is not an object,
-          // i.e. null.
-          if (!\is_object($productVariation)) {
-            continue;
-          }
-
-          /** @var \Drupal\commerce_product\Entity\ProductInterface|null The purchased product or null. */
-          $product = $productVariation->getProduct();
-
-          // Skip to the next order item if we didn't get a product entity.
-          if (!\is_object($product)) {
-            continue;
-          }
+        /** @var \Drupal\commerce_product\Entity\ProductInterface $product */
+        foreach (
+          $this->commerceOrder->getProductsFromOrder($order) as $product
+        ) {
 
           $this->userEpisodeTiers->grantUserProductEpisodeTiers(
             $order->getCustomer(), $product

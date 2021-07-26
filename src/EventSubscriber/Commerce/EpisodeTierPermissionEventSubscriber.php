@@ -5,6 +5,7 @@ namespace Drupal\omnipedia_commerce\EventSubscriber\Commerce;
 use Drupal\commerce_order\Event\OrderEvent;
 use Drupal\commerce_order\Event\OrderEvents;
 use Drupal\Core\Logger\RfcLogLevel;
+use Drupal\omnipedia_commerce\Service\CommerceOrderInterface;
 use Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -13,6 +14,13 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * Event subscriber to grant a user episode tiers on Commerce order paid.
  */
 class EpisodeTierPermissionEventSubscriber implements EventSubscriberInterface {
+
+  /**
+   * The Omnipedia Commerce order helper service.
+   *
+   * @var \Drupal\omnipedia_commerce\Service\CommerceOrderInterface
+   */
+  protected $commerceOrder;
 
   /**
    * Our logger channel.
@@ -34,13 +42,18 @@ class EpisodeTierPermissionEventSubscriber implements EventSubscriberInterface {
    * @param \Psr\Log\LoggerInterface $loggerChannel
    *   Our logger channel.
    *
+   * @param \Drupal\omnipedia_commerce\Service\CommerceOrderInterface $commerceOrder
+   *   The Omnipedia Commerce order helper service.
+   *
    * @param \Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface $userEpisodeTiers
    *   The Omnipedia user episode tiers service.
    */
   public function __construct(
     LoggerInterface           $loggerChannel,
+    CommerceOrderInterface    $commerceOrder,
     UserEpisodeTiersInterface $userEpisodeTiers
   ) {
+    $this->commerceOrder    = $commerceOrder;
     $this->loggerChannel    = $loggerChannel;
     $this->userEpisodeTiers = $userEpisodeTiers;
   }
@@ -91,30 +104,8 @@ class EpisodeTierPermissionEventSubscriber implements EventSubscriberInterface {
 
     }
 
-    /** @var \Drupal\commerce_order\Entity\OrderItemInterface[] The items for this order. */
-    $orderItems = $order->getItems();
-
-    foreach ($orderItems as $orderItem) {
-
-      /** @var \Drupal\commerce\PurchasableEntityInterface|null The product variation entity or null. */
-      $productVariation = $orderItem->getPurchasedEntity();
-
-      // Skip to the next order item if the product variation is not an object,
-      // i.e. null.
-      if (!\is_object($productVariation)) {
-        continue;
-      }
-
-      /** @var \Drupal\commerce_product\Entity\ProductInterface|null The purchased product or null. */
-      $product = $productVariation->getProduct();
-
-      // Skip to the next order item if we didn't get a product entity.
-      if (!\is_object($product)) {
-        continue;
-      }
-
+    foreach ($this->commerceOrder->getProductsFromOrder($order) as $product) {
       $this->userEpisodeTiers->grantUserProductEpisodeTiers($user, $product);
-
     }
 
   }

@@ -38,6 +38,7 @@ services:
     class: Drupal\omnipedia_commerce\EventSubscriber\Commerce\EpisodeTierPermissionEventSubscriber
     arguments:
       - '@logger.channel.omnipedia_commerce'
+      - '@omnipedia_commerce.commerce_order'
       - '@omnipedia_commerce.user_episode_tiers'
     tags:
       - { name: 'event_subscriber' }
