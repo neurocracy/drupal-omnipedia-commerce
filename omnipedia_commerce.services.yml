@@ -6,6 +6,13 @@ services:
     factory: logger.factory:get
     arguments: ['omnipedia_commerce']
 
+  # The Omnipedia Commerce Cart Redirection helper service.
+  omnipedia_commerce.commerce_cart_redirection:
+    class: Drupal\omnipedia_commerce\Service\CommerceCartRedirection
+    arguments:
+      - '@omnipedia_commerce.commerce_order'
+      - '@config.factory'
+
   # The Omnipedia Commerce order helper service.
   omnipedia_commerce.commerce_order:
     class: Drupal\omnipedia_commerce\Service\CommerceOrder
@@ -48,7 +55,7 @@ services:
     class: Drupal\omnipedia_commerce\EventSubscriber\Form\CommerceAddToCartFormAlterEventSubscriber
     arguments:
       - '@commerce_cart.cart_provider'
-      - '@config.factory'
+      - '@omnipedia_commerce.commerce_cart_redirection'
     tags:
       - { name: 'event_subscriber' }
 

@@ -6,10 +6,10 @@ use Drupal\commerce_cart\CartProviderInterface;
 use Drupal\commerce_cart\Form\AddToCartFormInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_product\Entity\ProductInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\core_event_dispatcher\Event\Form\FormAlterEvent;
 use Drupal\Core\Url;
 use Drupal\hook_event_dispatcher\HookEventDispatcherInterface;
+use Drupal\omnipedia_commerce\Service\CommerceCartRedirectionInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -40,11 +40,11 @@ class CommerceAddToCartFormAlterEventSubscriber implements EventSubscriberInterf
   protected $commerceCartProvider;
 
   /**
-   * The Drupal configuration object factory service.
+   * The Omnipedia Commerce Cart Redirection helper service.
    *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   * @var \Drupal\omnipedia_commerce\Service\CommerceCartRedirectionInterface
    */
-  protected $configFactory;
+  protected $commerceCartRedirection;
 
   /**
    * Event subscriber constructor; saves dependencies.
@@ -52,15 +52,15 @@ class CommerceAddToCartFormAlterEventSubscriber implements EventSubscriberInterf
    * @param \Drupal\commerce_cart\CartProviderInterface $commerceCartProvider
    *   The Commerce cart provider service.
    *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
-   *   The Drupal configuration object factory service.
+   * @param \Drupal\omnipedia_commerce\Service\CommerceCartRedirectionInterface $commerceCartRedirection
+   *   The Omnipedia Commerce Cart Redirection helper service.
    */
   public function __construct(
-    CartProviderInterface   $commerceCartProvider,
-    ConfigFactoryInterface  $configFactory
+    CartProviderInterface             $commerceCartProvider,
+    CommerceCartRedirectionInterface  $commerceCartRedirection
   ) {
-    $this->commerceCartProvider = $commerceCartProvider;
-    $this->configFactory        = $configFactory;
+    $this->commerceCartProvider     = $commerceCartProvider;
+    $this->commerceCartRedirection  = $commerceCartRedirection;
   }
 
   /**
@@ -119,59 +119,6 @@ class CommerceAddToCartFormAlterEventSubscriber implements EventSubscriberInterf
   }
 
   /**
-   * Determine if this product is configured to redirect cart to checkout.
-   *
-   * @param \Drupal\commerce_product\Entity\ProductInterface $product
-   *   The product entity.
-   *
-   * @return boolean
-   *   True if this product is configured to redirect to checkout on adding to
-   *   cart, false otherwise.
-   *
-   * @see \commerce_cart_redirection_form_alter()
-   *   Adapted from this as there's no API provided for the module, so we have
-   *   to load the config and figure it out ourselves.
-   */
-  protected function isCartToRedirect(ProductInterface $product): bool {
-
-    /** @var \Drupal\Core\Config\ImmutableConfig */
-    $config = $this->configFactory->get('commerce_cart_redirection.settings');
-
-    /** @var string[]|null */
-    $activeProductTypes = $config->get('product_bundles');
-
-    if (!$activeProductTypes) {
-      return false;
-    }
-
-    /** @var string[]|null */
-    $negate = $config->get('negate_product_bundles');
-
-    /** @var \Drupal\commerce_product\Entity\ProductTypeInterface */
-    $productType = $product->getDefaultVariation()->bundle();
-
-    if (
-      isset($activeProductTypes[$productType]) &&
-      $activeProductTypes[$productType] !== 0
-    ) {
-
-      if (!$negate) {
-        return true;
-      }
-
-    } else {
-
-      if ($negate) {
-        return true;
-      }
-
-    }
-
-    return false;
-
-  }
-
-  /**
    * Alter the Commerce add to cart form.
    *
    * @param \Drupal\core_event_dispatcher\Event\Form\FormAlterEvent $event
@@ -208,7 +155,7 @@ class CommerceAddToCartFormAlterEventSubscriber implements EventSubscriberInterf
 
     if (
       !$this->isProductInCart($product) ||
-      !$this->isCartToRedirect($product)
+      !$this->commerceCartRedirection->isCartToRedirect($cart)
     ) {
       return;
     }
