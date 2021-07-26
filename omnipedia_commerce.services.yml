@@ -6,6 +6,10 @@ services:
     factory: logger.factory:get
     arguments: ['omnipedia_commerce']
 
+  # The Omnipedia Commerce order helper service.
+  omnipedia_commerce.commerce_order:
+    class: Drupal\omnipedia_commerce\Service\CommerceOrder
+
   # The Omnipedia content access product service.
   omnipedia_commerce.content_access_product:
     class: Drupal\omnipedia_commerce\Service\ContentAccessProduct
