@@ -20,5 +20,12 @@
     "drupal/permissions_by_term": "^2.25"
   },
   "require-dev": {
+  },
+  "extra": {
+    "patches": {
+      "drupal/commerce_paypal": {
+        "Add webhooks support for authorized/captured payments [#3215839]: https://www.drupal.org/project/commerce_paypal/issues/3215839 ": "https://www.drupal.org/files/issues/2021-05-26/3215839-4.patch"
+      }
+    }
   }
 }
