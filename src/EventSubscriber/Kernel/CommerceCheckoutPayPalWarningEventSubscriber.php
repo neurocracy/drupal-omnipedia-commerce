@@ -79,7 +79,7 @@ class CommerceCheckoutPayPalWarningEventSubscriber implements EventSubscriberInt
   public function onKernelRequest(GetResponseEvent $event): void {
 
     if (
-      !$this->currentRouteMatch->getRouteName() === 'commerce_checkout.form' ||
+      $this->currentRouteMatch->getRouteName() !== 'commerce_checkout.form' ||
       $this->currentRouteMatch->getParameter('step') !== 'order_information'
     ) {
       return;
