@@ -81,13 +81,3 @@ services:
       - '@commerce_cart.cart_subscriber'
     tags:
       - { name: 'event_subscriber' }
-
-  # Event subscriber to show PayPal warning on the Commerce checkout route.
-  omnipedia_commerce.kernel_commerce_paypal_warning_event_subscriber:
-    class: Drupal\omnipedia_commerce\EventSubscriber\Kernel\CommerceCheckoutPayPalWarningEventSubscriber
-    arguments:
-      - '@current_route_match'
-      - '@messenger'
-      - '@string_translation'
-    tags:
-      - { name: 'event_subscriber' }
