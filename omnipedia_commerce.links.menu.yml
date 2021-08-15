@@ -9,3 +9,11 @@ omnipedia_commerce.settings:
   route_name: 'omnipedia_commerce.settings'
   parent: 'omnipedia_commerce.configuration'
   description: 'Configure Omnipedia commerce settings.'
+
+omnipedia_commerce.content_access_base_product.main:
+  class: Drupal\omnipedia_commerce\Plugin\Menu\ContentAccessBaseProductMenuLink
+  menu_name: main
+
+omnipedia_commerce.content_access_base_product.footer:
+  class: Drupal\omnipedia_commerce\Plugin\Menu\ContentAccessBaseProductMenuLink
+  menu_name: footer
