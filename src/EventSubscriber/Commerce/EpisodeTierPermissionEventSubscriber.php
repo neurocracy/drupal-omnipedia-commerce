@@ -97,7 +97,10 @@ class EpisodeTierPermissionEventSubscriber implements EventSubscriberInterface {
       $this->loggerChannel->log(
         RfcLogLevel::ERROR,
         'Order has no items:<pre>@order</pre>',
-        ['@order' => \print_r($order, true)]
+        [
+        // Don't \print_r($order, true) or it'll cause PHP out of memory error.
+          '@order'    => $order->id(),
+        ]
       );
 
       return;
