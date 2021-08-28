@@ -7,7 +7,6 @@ use Drupal\commerce_checkout\Plugin\Commerce\CheckoutPane\CheckoutPaneBase;
 use Drupal\commerce\Response\NeedsRedirectException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Url;
 use Drupal\omnipedia_commerce\Service\CommerceOrderInterface;
@@ -154,8 +153,7 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
     // Bail if the order has no items and log an error.
     if (count($products) === 0) {
 
-      $this->loggerChannel->log(
-        RfcLogLevel::ERROR,
+      $this->loggerChannel->error(
         'Order has no items:<pre>@order</pre>',
         ['@order' => \print_r($this->order, true)]
       );
@@ -212,8 +210,7 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
     // empty() in case we got an empty string.
     if (empty($message)) {
 
-      $this->loggerChannel->log(
-        RfcLogLevel::ERROR,
+      $this->loggerChannel->error(
         'Order has no message:<pre>@order</pre>',
         ['@order' => \print_r($this->order, true)]
       );

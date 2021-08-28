@@ -3,7 +3,6 @@
 namespace Drupal\omnipedia_commerce\Service;
 
 use Drupal\commerce_product\Entity\ProductInterface;
-use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\omnipedia_commerce\Service\PermissionsByTermInterface;
 use Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface;
@@ -54,8 +53,7 @@ class UserEpisodeTiers implements UserEpisodeTiersInterface {
 
     // Bail if this is not an authenticated user and log an error.
     if ($user->isAnonymous()) {
-      $this->loggerChannel->log(
-        RfcLogLevel::ERROR,
+      $this->loggerChannel->error(
         'User is anonymous - this could indicate a misconfiguration of commerce functionality or user permissions.'
       );
 
@@ -66,8 +64,7 @@ class UserEpisodeTiers implements UserEpisodeTiersInterface {
     // episode tiers field.
     if (!$product->hasField('field_episode_tier')) {
 
-      $this->loggerChannel->log(
-        RfcLogLevel::ERROR,
+      $this->loggerChannel->error(
         'Product does not have the episode tiers field:<pre>@product</pre>',
         ['@product' => \print_r($product, true)]
       );

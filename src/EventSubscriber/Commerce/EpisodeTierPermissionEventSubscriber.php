@@ -4,7 +4,6 @@ namespace Drupal\omnipedia_commerce\EventSubscriber\Commerce;
 
 use Drupal\commerce_order\Event\OrderEvent;
 use Drupal\commerce_order\Event\OrderEvents;
-use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\omnipedia_commerce\Service\CommerceOrderInterface;
 use Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface;
 use Psr\Log\LoggerInterface;
@@ -83,8 +82,7 @@ class EpisodeTierPermissionEventSubscriber implements EventSubscriberInterface {
 
     // Bail if this is not an authenticated user and log an error.
     if ($user->isAnonymous()) {
-      $this->loggerChannel->log(
-        RfcLogLevel::ERROR,
+      $this->loggerChannel->error(
         'User is anonymous - this could indicate a misconfiguration of commerce functionality or user permissions.'
       );
 
@@ -94,8 +92,7 @@ class EpisodeTierPermissionEventSubscriber implements EventSubscriberInterface {
     // Bail if the order has no items and log an error.
     if (!$order->hasItems()) {
 
-      $this->loggerChannel->log(
-        RfcLogLevel::ERROR,
+      $this->loggerChannel->error(
         'Order has no items:<pre>@order</pre>',
         [
         // Don't \print_r($order, true) or it'll cause PHP out of memory error.
