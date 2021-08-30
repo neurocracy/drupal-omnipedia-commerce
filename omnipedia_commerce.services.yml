@@ -23,6 +23,7 @@ services:
     arguments:
       - '@config.factory'
       - '@entity_type.manager'
+      - '@omnipedia.wiki_node_main_page'
 
   # The Omnipedia Permissions by Term helper service.
   omnipedia_commerce.permissions_by_term:

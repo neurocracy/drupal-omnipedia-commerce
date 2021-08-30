@@ -3,6 +3,7 @@
 namespace Drupal\omnipedia_commerce\Service;
 
 use Drupal\commerce_product\Entity\ProductInterface;
+use Drupal\omnipedia_core\Entity\NodeInterface;
 
 /**
  * The Omnipedia content access product service interface.
@@ -44,5 +45,27 @@ interface ContentAccessProductInterface {
    *   Either a product entity, or null if not configured.
    */
   public function getBaseProduct(): ?ProductInterface;
+
+  /**
+   * Get the message associated with a product, if any.
+   *
+   * @param \Drupal\commerce_product\Entity\ProductInterface $product
+   *   A product entity.
+   *
+   * @return array
+   *   The message render array.
+   */
+  public function getProductMessage(ProductInterface $product): array;
+
+  /**
+   * Get the wiki node associated with a product, if any.
+   *
+   * @param \Drupal\commerce_product\Entity\ProductInterface $product
+    *   A product entity.
+  *
+   * @return \Drupal\omnipedia_core\Entity\NodeInterface|null
+   *   Either a node entity or null if one can't be determined.
+   */
+  public function getProductWikiNode(ProductInterface $product): ?NodeInterface;
 
 }
