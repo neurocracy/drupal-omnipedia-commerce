@@ -10,7 +10,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Url;
 use Drupal\omnipedia_commerce\Service\CommerceOrderInterface;
-use Drupal\omnipedia_core\Service\WikiNodeMainPageInterface;
+use Drupal\omnipedia_commerce\Service\ContentAccessProductInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -60,6 +60,13 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
   protected $commerceOrder;
 
   /**
+   * The Omnipedia content access product service.
+   *
+   * @var \Drupal\omnipedia_commerce\Service\ContentAccessProductInterface
+   */
+  protected $contentAccessProduct;
+
+  /**
    * Our logger channel.
    *
    * @var \Psr\Log\LoggerInterface
@@ -67,35 +74,28 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
   protected $loggerChannel;
 
   /**
-   * The Omnipedia wiki node main page service.
-   *
-   * @var \Drupal\omnipedia_core\Service\WikiNodeMainPageInterface
-   */
-  protected $wikiNodeMainPage;
-
-  /**
    * {@inheritdoc}
    *
    * @param \Drupal\omnipedia_commerce\Service\CommerceOrderInterface $commerceOrder
    *   The Omnipedia Commerce order helper service.
+   *
+   * @param \Drupal\omnipedia_commerce\Service\ContentAccessProductInterface $contentAccessProduct
+   *   The Omnipedia content access product service.
    *
    * @param \Psr\Log\LoggerInterface $loggerChannel
    *   Our logger channel.
    *
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The Drupal messenger service.
-   *
-   * @param \Drupal\omnipedia_core\Service\WikiNodeMainPageInterface $wikiNodeMainPage
-   *   The Omnipedia wiki node main page service.
    */
   public function __construct(
     array $configuration, $pluginId, $pluginDefinition,
-    CheckoutFlowInterface       $checkoutFlow,
-    EntityTypeManagerInterface  $entityTypeManager,
-    CommerceOrderInterface      $commerceOrder,
-    LoggerInterface             $loggerChannel,
-    MessengerInterface          $messenger,
-    WikiNodeMainPageInterface   $wikiNodeMainPage
+    CheckoutFlowInterface         $checkoutFlow,
+    EntityTypeManagerInterface    $entityTypeManager,
+    CommerceOrderInterface        $commerceOrder,
+    ContentAccessProductInterface $contentAccessProduct,
+    LoggerInterface               $loggerChannel,
+    MessengerInterface            $messenger
   ) {
 
     parent::__construct(
@@ -103,10 +103,10 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
       $checkoutFlow, $entityTypeManager
     );
 
-    $this->commerceOrder    = $commerceOrder;
-    $this->loggerChannel    = $loggerChannel;
-    $this->messenger        = $messenger;
-    $this->wikiNodeMainPage = $wikiNodeMainPage;
+    $this->commerceOrder        = $commerceOrder;
+    $this->contentAccessProduct = $contentAccessProduct;
+    $this->loggerChannel        = $loggerChannel;
+    $this->messenger            = $messenger;
 
   }
 
@@ -125,9 +125,9 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
       $checkoutFlow,
       $container->get('entity_type.manager'),
       $container->get('omnipedia_commerce.commerce_order'),
+      $container->get('omnipedia_commerce.content_access_product'),
       $container->get('logger.channel.omnipedia_commerce'),
-      $container->get('messenger'),
-      $container->get('omnipedia.wiki_node_main_page')
+      $container->get('messenger')
     );
   }
 
@@ -155,80 +155,52 @@ class RedirectToWikiNodePane extends CheckoutPaneBase {
 
       $this->loggerChannel->error(
         'Order has no items:<pre>@order</pre>',
-        ['@order' => \print_r($this->order, true)]
+        // Don't \print_r($order, true) or it'll cause PHP out of memory error.
+        ['@order' => \print_r($this->order->id(), true)]
       );
 
       return $paneForm;
 
     }
 
-    /** @var \Drupal\commerce_order\Entity\OrderItemInterface[] The items for this order. */
-    $orderItems = $this->order->getItems();
-
-    /** @var string|null The wiki node ID (nid) to redirect to, if any. */
-    $nid = null;
-
-    /** @var string|null The message to display to the user after they've been redirected. */
-    $message = null;
-
     foreach ($products as $product) {
 
-      // Skip to the next product if this one doesn't have the redirect fields.
-      if (
-        !$product->hasField(self::WIKI_NODE_FIELD_NAME) ||
-        !$product->hasField(self::MESSAGE_FIELD_NAME)
-      ) {
-        continue;
-      }
+      /** @var array A message render array. */
+      $message = $this->contentAccessProduct->getProductMessage($product);
 
-      foreach (
-        $product->get(self::WIKI_NODE_FIELD_NAME) as $delta => $fieldItem
-      ) {
+      /** @var \Drupal\omnipedia_core\Entity\NodeInterface|null */
+      $node = $this->contentAccessProduct->getProductWikiNode($product);
 
-        /** @var string|null The node ID (nid) for this  or null if not set. */
-        $nid = $fieldItem->target_id;
-
-        // Skip this field if it doesn't contain a value.
-        if (empty($fieldItem->target_id)) {
-          continue;
-        }
-
-        $nid = $fieldItem->target_id;
-
-        // Use the first one found.
+      // Break when we've found both a message and a wiki node.
+      if (!empty($message) && \is_object($node)) {
         break;
-
       }
-
-      // Get the message regardless of whether or not we found a node ID (nid),
-      // as the wiki node field can be empty.
-      $message = $product->get(self::MESSAGE_FIELD_NAME)->getString();
 
     }
 
-    // Bail if no message was found and log an error. Note that we need to use
-    // empty() in case we got an empty string.
+    // Bail if no message was found and log an error.
     if (empty($message)) {
 
       $this->loggerChannel->error(
         'Order has no message:<pre>@order</pre>',
-        ['@order' => \print_r($this->order, true)]
+        // Don't \print_r($order, true) or it'll cause PHP out of memory error.
+        ['@order' => \print_r($this->order->id(), true)]
       );
 
       return $paneForm;
 
     }
 
-    // Fall back to the default main page if no wiki node was set.
-    if ($nid === null) {
-      $nid = $this->wikiNodeMainPage->getMainPage('default')->nid->getString();
+    if (!isset($node) || !\is_object($node)) {
+      return $paneForm;
     }
 
     $this->messenger->addStatus($message);
 
-    throw new NeedsRedirectException(
-      Url::fromRoute('entity.node.canonical', ['node' => $nid])->toString()
-    );
+    throw new NeedsRedirectException($node->toUrl()->toString());
+
+    // Is this necessary? Does omitting it cause errors somewhere?
+    return $paneForm;
 
   }
 
