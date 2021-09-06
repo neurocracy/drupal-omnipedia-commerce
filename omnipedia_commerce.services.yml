@@ -51,6 +51,17 @@ services:
     tags:
       - { name: 'event_subscriber' }
 
+  # Event subscriber to correct Commerce order payment issues.
+  omnipedia_commerce.commerce_order_payment_corrector_event_subscriber:
+    class: Drupal\omnipedia_commerce\EventSubscriber\Commerce\OrderPaymentCorrectorEventSubscriber
+    arguments:
+      - '@commerce_payment.order_updater'
+      - '@entity_type.manager'
+      - '@logger.channel.omnipedia_commerce'
+      - '@session'
+    tags:
+      - { name: 'event_subscriber' }
+
   # Event subscriber to alter the Commerce add to cart form.
   omnipedia_commerce.form_commerce_add_to_cart_alter_event_subscriber:
     class: Drupal\omnipedia_commerce\EventSubscriber\Form\CommerceAddToCartFormAlterEventSubscriber
