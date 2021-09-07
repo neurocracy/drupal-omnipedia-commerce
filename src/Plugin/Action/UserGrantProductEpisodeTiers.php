@@ -8,7 +8,7 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\omnipedia_commerce\Service\PermissionsByTermInterface;
+use Drupal\omnipedia_access\Service\PermissionsByTermInterface;
 use Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -27,7 +27,7 @@ class UserGrantProductEpisodeTiers extends ConfigurableActionBase implements Con
   /**
    * The Omnipedia Permissions by Term helper service.
    *
-   * @var \Drupal\omnipedia_commerce\Service\PermissionsByTermInterface
+   * @var \Drupal\omnipedia_access\Service\PermissionsByTermInterface
    */
   protected $permissionsByTerm;
 
@@ -48,7 +48,7 @@ class UserGrantProductEpisodeTiers extends ConfigurableActionBase implements Con
   /**
    * {@inheritdoc}
    *
-   * @param \Drupal\omnipedia_commerce\Service\PermissionsByTermInterface $permissionsByTerm
+   * @param \Drupal\omnipedia_access\Service\PermissionsByTermInterface $permissionsByTerm
    *   The Omnipedia Permissions by Term helper service.
    *
    * @param \Drupal\Core\Entity\EntityStorageInterface $productStorage
@@ -85,7 +85,7 @@ class UserGrantProductEpisodeTiers extends ConfigurableActionBase implements Con
       $configuration,
       $pluginId,
       $pluginDefinition,
-      $container->get('omnipedia_commerce.permissions_by_term'),
+      $container->get('omnipedia_access.permissions_by_term'),
       $container->get('entity_type.manager')->getStorage('commerce_product'),
       $container->get('omnipedia_commerce.user_episode_tiers')
     );

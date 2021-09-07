@@ -7,7 +7,7 @@ use Drupal\Core\Action\ActionBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
-use Drupal\omnipedia_commerce\Service\PermissionsByTermInterface;
+use Drupal\omnipedia_access\Service\PermissionsByTermInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -33,7 +33,7 @@ class GrantOrderProductEpisodeTiers extends ActionBase implements ContainerFacto
   /**
    * The Omnipedia Permissions by Term helper service.
    *
-   * @var \Drupal\omnipedia_commerce\Service\PermissionsByTermInterface
+   * @var \Drupal\omnipedia_access\Service\PermissionsByTermInterface
    */
   protected $permissionsByTerm;
 
@@ -50,7 +50,7 @@ class GrantOrderProductEpisodeTiers extends ActionBase implements ContainerFacto
    * @param \Drupal\Core\Session\AccountInterface $currentUser
    *   The current user.
    *
-   * @param \Drupal\omnipedia_commerce\Service\PermissionsByTermInterface $permissionsByTerm
+   * @param \Drupal\omnipedia_access\Service\PermissionsByTermInterface $permissionsByTerm
    *   The Omnipedia Permissions by Term helper service.
    *
    * @param \Drupal\Core\TempStore\PrivateTempStoreFactory $tempStoreFactory
@@ -85,7 +85,7 @@ class GrantOrderProductEpisodeTiers extends ActionBase implements ContainerFacto
       $pluginId,
       $pluginDefinition,
       $container->get('current_user'),
-      $container->get('omnipedia_commerce.permissions_by_term'),
+      $container->get('omnipedia_access.permissions_by_term'),
       $container->get('tempstore.private')
     );
   }

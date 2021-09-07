@@ -4,7 +4,7 @@ namespace Drupal\omnipedia_commerce\Service;
 
 use Drupal\commerce_product\Entity\ProductInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\omnipedia_commerce\Service\PermissionsByTermInterface;
+use Drupal\omnipedia_access\Service\PermissionsByTermInterface;
 use Drupal\omnipedia_commerce\Service\UserEpisodeTiersInterface;
 use Psr\Log\LoggerInterface;
 
@@ -23,7 +23,7 @@ class UserEpisodeTiers implements UserEpisodeTiersInterface {
   /**
    * The Omnipedia Permissions by Term helper service.
    *
-   * @var \Drupal\omnipedia_commerce\Service\PermissionsByTermInterface
+   * @var \Drupal\omnipedia_access\Service\PermissionsByTermInterface
    */
   protected $permissionsByTerm;
 
@@ -33,7 +33,7 @@ class UserEpisodeTiers implements UserEpisodeTiersInterface {
    * @param \Psr\Log\LoggerInterface $loggerChannel
    *   Our logger channel.
    *
-   * @param \Drupal\omnipedia_commerce\Service\PermissionsByTermInterface $permissionsByTerm
+   * @param \Drupal\omnipedia_access\Service\PermissionsByTermInterface $permissionsByTerm
    *   The Omnipedia Permissions by Term helper service.
    */
   public function __construct(
