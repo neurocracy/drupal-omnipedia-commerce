@@ -6,6 +6,7 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Action\ActionBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\omnipedia_access\Service\PermissionsByTermInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -24,9 +25,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class GrantOrderProductEpisodeTiers extends ActionBase implements ContainerFactoryPluginInterface {
 
   /**
-   * The current user.
+   * The current user proxy service.
    *
-   * @var \Drupal\Core\Session\AccountInterface
+   * @var \Drupal\Core\Session\AccountProxyInterface
    */
   protected $currentUser;
 
@@ -47,8 +48,8 @@ class GrantOrderProductEpisodeTiers extends ActionBase implements ContainerFacto
   /**
    * {@inheritdoc}
    *
-   * @param \Drupal\Core\Session\AccountInterface $currentUser
-   *   The current user.
+   * @param \Drupal\Core\Session\AccountProxyInterface $currentUser
+   *   The current user proxy service.
    *
    * @param \Drupal\omnipedia_access\Service\PermissionsByTermInterface $permissionsByTerm
    *   The Omnipedia Permissions by Term helper service.
@@ -58,7 +59,7 @@ class GrantOrderProductEpisodeTiers extends ActionBase implements ContainerFacto
    */
   public function __construct(
     array $configuration, $pluginId, $pluginDefinition,
-    AccountInterface            $currentUser,
+    AccountProxyInterface       $currentUser,
     PermissionsByTermInterface  $permissionsByTerm,
     PrivateTempStoreFactory     $tempStoreFactory
   ) {

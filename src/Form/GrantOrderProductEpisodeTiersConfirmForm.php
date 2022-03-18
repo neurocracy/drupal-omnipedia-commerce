@@ -6,7 +6,7 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
-use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\Core\Url;
@@ -37,9 +37,9 @@ class GrantOrderProductEpisodeTiersConfirmForm extends ConfirmFormBase {
   protected $commerceOrder;
 
   /**
-   * The current user.
+   * The current user proxy service.
    *
-   * @var \Drupal\Core\Session\AccountInterface
+   * @var \Drupal\Core\Session\AccountProxyInterface
    */
   protected $currentUser;
 
@@ -77,8 +77,8 @@ class GrantOrderProductEpisodeTiersConfirmForm extends ConfirmFormBase {
    * @param \Drupal\omnipedia_commerce\Service\CommerceOrderInterface $commerceOrder
    *   The Omnipedia Commerce order helper service.
    *
-   * @param \Drupal\Core\Session\AccountInterface $currentUser
-   *   The current user.
+   * @param \Drupal\Core\Session\AccountProxyInterface $currentUser
+   *   The current user proxy service.
    *
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The Drupal messenger service.
@@ -97,7 +97,7 @@ class GrantOrderProductEpisodeTiersConfirmForm extends ConfirmFormBase {
    */
   public function __construct(
     CommerceOrderInterface    $commerceOrder,
-    AccountInterface          $currentUser,
+    AccountProxyInterface     $currentUser,
     MessengerInterface        $messenger,
     EntityStorageInterface    $orderStorage,
     TranslationInterface      $stringTranslation,
