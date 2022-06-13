@@ -1,5 +1,6 @@
-This contains the source files for the "[Omnipedia](https://omnipedia.app/) -
-Commerce" Drupal module.
+This contains the source files for the "*Omnipedia - Commerce*" Drupal module,
+which provides commerce-related functionality for
+[Omnipedia](https://omnipedia.app/).
 
 ⚠️⚠️⚠️ ***Here be potential spoilers. Proceed at your own risk.*** ⚠️⚠️⚠️
 
