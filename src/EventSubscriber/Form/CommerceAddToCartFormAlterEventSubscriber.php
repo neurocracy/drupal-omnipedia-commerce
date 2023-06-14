@@ -7,8 +7,8 @@ use Drupal\commerce_cart\Form\AddToCartFormInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_product\Entity\ProductInterface;
 use Drupal\core_event_dispatcher\Event\Form\FormAlterEvent;
+use Drupal\core_event_dispatcher\FormHookEvents;
 use Drupal\Core\Url;
-use Drupal\hook_event_dispatcher\HookEventDispatcherInterface;
 use Drupal\omnipedia_commerce\Service\CommerceCartRedirectionInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -68,7 +68,7 @@ class CommerceAddToCartFormAlterEventSubscriber implements EventSubscriberInterf
    */
   public static function getSubscribedEvents(): array {
     return [
-      HookEventDispatcherInterface::FORM_ALTER => 'onFormAlter',
+      FormHookEvents::FORM_ALTER => 'onFormAlter',
     ];
   }
 

@@ -5,7 +5,7 @@ namespace Drupal\omnipedia_commerce\EventSubscriber\Kernel;
 use Drupal\commerce_cart\EventSubscriber\CartEventSubscriber;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -62,7 +62,7 @@ class CommerceCartAddedMessageRemovalEventSubscriber implements EventSubscriberI
   /**
    * Removes the event subscriber that produces the added to cart message.
    *
-   * @param \Symfony\Component\HttpKernel\Event\GetResponseEvent $event
+   * @param \Symfony\Component\HttpKernel\Event\RequestEvent $event
    *   Symfony response event object.
    *
    * @param string $eventName
@@ -72,7 +72,7 @@ class CommerceCartAddedMessageRemovalEventSubscriber implements EventSubscriberI
    *   The Symfony event dispatcher service.
    */
   public function onKernelRequest(
-    GetResponseEvent $event,
+    RequestEvent $event,
     string $eventName,
     EventDispatcherInterface $eventDispatcher
   ): void {

@@ -12,7 +12,7 @@ use Drupal\Core\Utility\Error;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -116,14 +116,14 @@ class OrderPaymentCorrectorEventSubscriber implements EventSubscriberInterface {
    * ID will be left in the session attribute, so that another attempt will be
    * made on the next request, until it succeeds.
    *
-   * @param \Symfony\Component\HttpKernel\Event\GetResponseEvent $event
+   * @param \Symfony\Component\HttpKernel\Event\RequestEvent $event
    *   Symfony response event object.
    *
    * @todo Limit how many times this is attempted, and give up after a set
    *   number to avoid potential performance issues? We could log an error when
    *   we give up.
    */
-  public function onKernelRequest(GetResponseEvent $event): void {
+  public function onKernelRequest(RequestEvent $event): void {
 
     /** @var int[] */
     $orderIds = $this->session->get(self::SESSION_KEY, []);
