@@ -103,7 +103,7 @@ class ContentAccessProduct implements ContentAccessProductInterface {
     /** @var \Drupal\Core\Entity\Query\QueryInterface An entity query instance to verify that the provided $productId exists in storage. */
     $query = ($this->productStorage->getQuery())->condition(
       $this->productEntityType->getKeys()['id'], $productId
-    )->count();
+    )->accessCheck(true)->count();
 
     // Bail if the provided $productId does not exist.
     if (empty($query->execute())) {
