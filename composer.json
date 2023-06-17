@@ -3,6 +3,10 @@
   "description": "Omnipedia - Commerce",
   "type": "drupal-custom-module",
   "license": "GPL-2.0-or-later",
+  "support": {
+    "docs": "https://github.com/neurocracy/drupal-omnipedia-commerce",
+    "source": "https://github.com/neurocracy/drupal-omnipedia-commerce"
+  },
   "authors": [
     {
       "name": "Ambient.Impact",
