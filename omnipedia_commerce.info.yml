@@ -22,3 +22,9 @@ dependencies:
   - hook_event_dispatcher:core_event_dispatcher
   - omnipedia_access:omnipedia_access
   - omnipedia_core:omnipedia_core
+
+config_devel:
+  optional:
+    - field.field.user.user.field_early_supporter
+    - field.storage.user.field_early_supporter
+    - views.view.users_season_pass
