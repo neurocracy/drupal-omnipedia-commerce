@@ -14,6 +14,13 @@ which provided commerce-related functionality for
 
 * [Composer](https://getcomposer.org/)
 
+## Drupal dependencies
+
+Before attempting to install this, you must add the Composer repositories as
+described in the installation instructions for these dependencies:
+
+* The [`omnipedia_access`](https://github.com/neurocracy/drupal-omnipedia-access) and [`omnipedia_core`](https://github.com/neurocracy/drupal-omnipedia-core) modules.
+
 ----
 
 # Major breaking changes

@@ -21,6 +21,8 @@
     "drupal/commerce_paypal": "^1.0",
     "drupal/commerce_product_limits": "^1.0",
     "drupal/commerce_stripe": "^1.0",
-    "drupal/hook_event_dispatcher": "^3.1 || ^4.0"
+    "drupal/hook_event_dispatcher": "^3.1 || ^4.0",
+    "drupal/omnipedia_access": "4.x-dev@dev",
+    "drupal/omnipedia_core": "4.x-dev@dev"
   }
 }
