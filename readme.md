@@ -10,7 +10,7 @@ which provided commerce-related functionality for
 
 # Requirements
 
-* [Drupal 9.5 or 10](https://www.drupal.org/download) ([Drupal 8 is end-of-life](https://www.drupal.org/psa-2021-11-30))
+* [Drupal 9.5 or 10](https://www.drupal.org/download)
 
 * [Composer](https://getcomposer.org/)
 
