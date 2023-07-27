@@ -1,6 +1,7 @@
 This contains the source files for the "*Omnipedia - Commerce*" Drupal module,
-which provides commerce-related functionality for
-[Omnipedia](https://omnipedia.app/).
+which provided commerce-related functionality for
+[Omnipedia](https://omnipedia.app/). 
+**This module is no longer used nor is any further development planned.**
 
 ⚠️⚠️⚠️ ***Here be potential spoilers. Proceed at your own risk.*** ⚠️⚠️⚠️
 
